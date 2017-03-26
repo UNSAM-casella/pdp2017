@@ -66,3 +66,6 @@ hierbaMala (CRaton edad peso altura) = (CRaton (doble edad) peso altura)
 alcachofa valor (CRaton edad peso altura) = (CRaton (edad - porcentaje edad valor) peso altura)
 
 hierbaZort (CRaton _ _ _) = pinky
+
+-- Medicinas
+
