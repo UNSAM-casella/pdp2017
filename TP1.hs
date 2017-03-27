@@ -7,24 +7,7 @@ data Raton = CRaton {
 	altura :: Float
 } deriving (Show, Eq)
 
-mikeyMouse = CRaton {
-	edad = 88,
-	peso = 20,
-	altura = 0.8
-}
 
-
-jerry = CRaton {
-	edad = 0,
-	peso = 0,
-	altura = 0
-}
-
-pinky = CRaton {
-	edad = 0,
-	peso = 0,
-	altura = 0
-}
 
 -- Utils
 -- Devuelve true si el valor pasado está entre el valorMaximo y el valorMinimo
@@ -68,4 +51,58 @@ alcachofa valor (CRaton edad peso altura) = (CRaton (edad - porcentaje edad valo
 hierbaZort (CRaton _ _ _) = pinky
 
 -- Medicinas
+cualquierHierba (CRaton hierba ) = hierba(CRaton edad, peso, altura)
+
+--recibe 2 hierbas y suma el efecto de ambas
+mezclar (CRaton hierba1 hierba2  )= hierba1(hierba2(CRaton edad peso altura)
+
+-- recibe una lista de hierbas y un raton
+medicina (CRaton [hierba])  = forEach hierba(CRaton edad, peso, altura)
+
+-- recibe una lista de medicinas, entonces en el for each va  a llamar a la funcion medicina
+tratamiento (CRaton [medicina]) = (forEach medicina(CRaton edad, peso, altura))
+
+
+--TESTS
+mikeyMouse = CRaton {
+	edad = 88,
+	peso = 20,
+	altura = 0.8
+}
+
+
+jerry = CRaton {
+	edad = 0,
+	peso = 0,
+	altura = 0
+}
+
+pinky = CRaton {
+	edad = 0,
+	peso = 0,
+	altura = 0
+}
+
+--Test 6 a y b
+estudioAntiguedad mikeyMouse --Tiene que devolver True
+estudioAntiguedad jerry --Tiene que devolver False
+
+masaCorporal mikeyMouse -- >0 para mikeyMouse
+masaCorporal jerry 		-- <0 para Jerry
+
+--Test 7 a, b, c y d
+mezclar jerry hierbaBuena hierbaMala --Tiene que devolver un raton igual a Jerry
+
+mezclar Jerry hierbaZort hierbaMala --Tiene que devolver a Pinky
+
+medicina Jerry [Alcachofa(10, Jerry) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura)] -- Devuelve a un Raton con edad 9.5 peso 1.8 altura 0.3
+
+tratamiento (CRaton) --Aca en el punto D me mato...
+
+
+
+
+
+
+
 
