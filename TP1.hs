@@ -21,15 +21,20 @@ doble = (*) 2
 porcentaje num denominador = num * denominador / 100
 
 -- Estudios
+
+masaCorporal :: Raton -> Float
 masaCorporal raton = peso raton / ( ( altura raton ) ^2 )
 
+antiguedad :: Raton -> Float
 antiguedad raton = (( edad raton + 5 ) / 85)
 
--- Analisis
-estudioAntiguedad raton = (antiguedad raton) > 1
+diagnosticoAntiguedad :: Raton -> Bool
+diagnosticoAntiguedad raton = (antiguedad raton) > 1
 
-estudioMasaCorporal raton = (estaEntreValores) (masaCorporal raton) 18.5 25
+diagnosticoMasaCorporal :: Raton -> Bool
+diagnosticoMasaCorporal raton = (estaEntreValores) (masaCorporal raton) 18.5 25
 
+-- Dignosticos - Analisis
 -- Harcodeado no define un valor critico para el estudio
 valorCritico = 10
 esMayor indice = indice > valorCritico
@@ -77,14 +82,33 @@ hacerMedicamento = fun
 ratisalil raton = hacerMedicamento [hierbaZort, hierbaMala] raton
 pondsAntiAge raton = hacerMedicamento [alcachofa 10, hierbaBuena, hierbaBuena, hierbaBuena] raton
 
--- Tratamientos (realizar un tratamiento a un ratón)
-realizarTratamiento [] raton = raton
-realizarTratamiento (medicina:xs) raton = realizarTratamiento xs (medicina raton)
+-- Tratamientos (realizar un tratamiento a un ratón contra un diagnostico)
 
 
+condition :: Int -> Bool
+condition x = x > 0 && x < 100
+
+-- realizarTratamiento :: (Raton -> Bool) -> [a] -> Raton -> Raton
+-- realizarTratamiento diagnostico [] raton = raton
+-- realizarTratamiento diagnostico (medicina:xs) raton  = (realizarTratamiento (diagnostico raton) xs (medicina raton))
+
+divideList :: [[a]] -> ([[a]], [[a]])
+
+realizarTratamiento :: t1 -> [a] -> Raton -> Raton
+realizarTratamiento diagnostico [] raton = raton
+realizarTratamiento diagnostico (medicina:xs) raton
+	| diagnostico raton > 0 || diagnostico raton == False = realizarTratamiento'
+	| otherwise = realizarTratamiento'
+	where realizarTratamiento' = realizarTratamiento diagnostico xs (medicina raton)
 
 
-
+maximum' :: (Ord a) => [a] -> a  
+maximum' [] = error "maximum of empty list"  
+maximum' [x] = x  
+maximum' (x:xs)   
+    | x > maxTail = x  
+    | otherwise = maxTail  
+    where maxTail = maximum' xs 
 
 -- Medicinas
 -- cualquierHierba (CRaton hierba ) = hierba(CRaton edad, peso, altura)
