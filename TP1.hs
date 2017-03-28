@@ -13,7 +13,8 @@ data Raton = CRaton {
 -- Devuelve true si el valor pasado está entre el valorMaximo y el valorMinimo
 estaEntreValores valor valorMinimo valorMaximo = valor < valorMaximo || valor > valorMinimo
 
-mitad = (/) 2
+-- Revisar como simplificar esto
+mitad num1 = num1 / 2
 doble = (*) 2
 
 -- Obtiene el porcentaje de un valor pasado, pej: 10%  ==> porcentaje 10 10 = 10 * 10 / 100 ==> 1
@@ -46,24 +47,59 @@ hierbaBuena (CRaton edad peso altura) = (CRaton (mitad edad) peso altura)
 
 hierbaMala (CRaton edad peso altura) = (CRaton (doble edad) peso altura)
 
-alcachofa valor (CRaton edad peso altura) = (CRaton (edad - porcentaje edad valor) peso altura)
+alcachofa valor (CRaton edad peso altura) = (CRaton edad (peso - porcentaje peso valor) altura)
 
 hierbaZort (CRaton _ _ _) = pinky
 
+
+
+-- Usar tipo en hierbas
+-- usar patter matching con una funcion que reciba un medicamento . tmb ysar cabeza y cola
+-- agregar a las hierbas efecto
+fun [] raton = raton
+fun (cabeza:cola) raton = fun cola (cabeza raton)
+
+-- Medicinas (hacer medicinas)
+hacerMedicamento = fun 
+-- Test de mezclarHierbas hierbaBuena hierbaMala jerry OK!
+-- Test de mezclarHierbas hierbaZort hierbaMala jerry OK!
+-- Test de mezclarHierbas hierbaMala hierbaBuena jerry OK!
+-- Test de mezclarHierbas hierbaMala hierbaZort jerry OK!
+-- Test de alcachofa 10 con 3 hierbasBuenas
+
+-- Queda obsoleta
+-- mezclarHierbas hierba1 hierba2 raton = hierba2 (CRaton (edad (hierba1 raton)) (peso (hierba1 raton)) (altura (hierba1 raton)) )
+-- Test de mezclarHierbas hierbaBuena hierbaMala jerry OK!
+-- Test de mezclarHierbas hierbaZort hierbaMala jerry OK!
+-- Test de mezclarHierbas hierbaMala hierbaBuena jerry OK!
+-- Test de mezclarHierbas hierbaMala hierbaZort jerry OK!
+
+ratisalil raton = hacerMedicamento [hierbaZort, hierbaMala] raton
+pondsAntiAge raton = hacerMedicamento [alcachofa 10, hierbaBuena, hierbaBuena, hierbaBuena] raton
+
+-- Tratamientos (realizar un tratamiento a un ratón)
+realizarTratamiento [] raton = raton
+realizarTratamiento (medicina:xs) raton = realizarTratamiento xs (medicina raton)
+
+
+
+
+
+
 -- Medicinas
-cualquierHierba (CRaton hierba ) = hierba(CRaton edad, peso, altura)
+-- cualquierHierba (CRaton hierba ) = hierba(CRaton edad, peso, altura)
 
---recibe 2 hierbas y suma el efecto de ambas
-mezclar (CRaton hierba1 hierba2  )= hierba1(hierba2(CRaton edad peso altura)
+-- --recibe 2 hierbas y suma el efecto de ambas
+-- mezclar (CRaton hierba1 hierba2  )= hierba1(hierba2(CRaton edad peso altura)
 
--- recibe una lista de hierbas y un raton
-medicina (CRaton [hierba])  = forEach hierba(CRaton edad, peso, altura)
+-- -- recibe una lista de hierbas y un raton
+-- medicina (CRaton [hierba])  = forEach hierba(CRaton edad, peso, altura)
 
--- recibe una lista de medicinas, entonces en el for each va  a llamar a la funcion medicina
-tratamiento (CRaton [medicina]) = (forEach medicina(CRaton edad, peso, altura))
+-- -- recibe una lista de medicinas, entonces en el for each va  a llamar a la funcion medicina
+-- tratamiento (CRaton [medicina]) = (forEach medicina(CRaton edad, peso, altura))
 
 
---TESTS
+-- --TESTS
 mikeyMouse = CRaton {
 	edad = 88,
 	peso = 20,
@@ -72,9 +108,9 @@ mikeyMouse = CRaton {
 
 
 jerry = CRaton {
-	edad = 0,
-	peso = 0,
-	altura = 0
+	edad = 76,
+	peso = 2,
+	altura = 0.3
 }
 
 pinky = CRaton {
@@ -83,21 +119,21 @@ pinky = CRaton {
 	altura = 0
 }
 
---Test 6 a y b
-estudioAntiguedad mikeyMouse --Tiene que devolver True
-estudioAntiguedad jerry --Tiene que devolver False
+-- --Test 6 a y b
+-- estudioAntiguedad mikeyMouse --Tiene que devolver True
+-- estudioAntiguedad jerry --Tiene que devolver False
 
-masaCorporal mikeyMouse -- >0 para mikeyMouse
-masaCorporal jerry 		-- <0 para Jerry
+-- masaCorporal mikeyMouse -- >0 para mikeyMouse
+-- masaCorporal jerry 		-- <0 para Jerry
 
---Test 7 a, b, c y d
-mezclar jerry hierbaBuena hierbaMala --Tiene que devolver un raton igual a Jerry
+-- --Test 7 a, b, c y d
+-- mezclar jerry hierbaBuena hierbaMala --Tiene que devolver un raton igual a Jerry
 
-mezclar Jerry hierbaZort hierbaMala --Tiene que devolver a Pinky
+-- mezclar Jerry hierbaZort hierbaMala --Tiene que devolver a Pinky
 
-medicina Jerry [Alcachofa(10, Jerry) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura)] -- Devuelve a un Raton con edad 9.5 peso 1.8 altura 0.3
+-- medicina Jerry [Alcachofa(10, Jerry) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura)] -- Devuelve a un Raton con edad 9.5 peso 1.8 altura 0.3
 
-tratamiento (CRaton) --Aca en el punto D me mato...
+-- ---tratamiento (CRaton) --Aca en el punto D me mato...
 
 
 
