@@ -7,6 +7,11 @@ data Raton = CRaton {
 	altura :: Float
 } deriving (Show, Eq)
 
+type Estudio = Raton -> Float
+type Analisis = Raton -> Float
+type Estudio = Analisis -> Bool
+type Hierba = CRaton edad peso altura -> Raton
+type Medicina = [] raton -> raton
 
 
 -- Utils
@@ -29,8 +34,8 @@ rangoMedio valor min max =  estaEntreValores valor min max
 masaCorporal :: Raton -> Float
 masaCorporal raton = peso raton / ( ( altura raton ) ^2 )
 
-antiguedad :: Raton -> Float
 antiguedad raton = (( edad raton + 5 ) / 85)
+antiguedad :: Raton -> Float
 
 -- analisis = 
 diagnosticoAntiguedad raton = analisisDeExceso 1 (antiguedad raton)
