@@ -1,4 +1,6 @@
 --TP1.hs
+instance Show (a -> b) where
+         show a= "funcion"
 
 -- Raton
 data Raton = CRaton {
@@ -7,11 +9,10 @@ data Raton = CRaton {
 	altura :: Float
 } deriving (Show, Eq)
 
-type Estudio = Raton -> Float
+type Estudio = Raton -> Raton
 type Analisis = Raton -> Float
-type Estudio = Analisis -> Bool
-type Hierba = CRaton edad peso altura -> Raton
-type Medicina = [] raton -> raton
+type Hierba = Raton -> Raton
+type Medicina = [Hierba] -> Raton -> Raton
 
 
 -- Utils
@@ -37,12 +38,8 @@ masaCorporal raton = peso raton / ( ( altura raton ) ^2 )
 antiguedad raton = (( edad raton + 5 ) / 85)
 antiguedad :: Raton -> Float
 
--- analisis = 
-diagnosticoAntiguedad raton = analisisDeExceso 1 (antiguedad raton)
-
--- analisis = 
--- masaCorporal = 22.222222
-diagnosticoMasaCorporal raton = analisisRangoMedio 18.5 25 (masaCorporal raton)
+-- analisis
+diagnostico analisis valor = analisis valor
 
 -- Dignosticos - Analisis
 -- Harcodeado no define un valor critico para el estudio
@@ -55,23 +52,34 @@ analisisBerretas _ = False
 
 -- Curando ratones
 -- Hierbas
+hierbaBuena :: Hierba
 hierbaBuena (CRaton edad peso altura) = (CRaton (mitad edad) peso altura)
 
+hierbaMala :: Hierba
 hierbaMala (CRaton edad peso altura) = (CRaton (doble edad) peso altura)
 
+alcachofa :: Float -> Hierba
 alcachofa valor (CRaton edad peso altura) = (CRaton edad (peso - porcentaje peso valor) altura)
 
+hierbaZort :: Hierba
 hierbaZort (CRaton _ _ _) = pinky
 
 -- Medicinas (hacer medicinas)
+-- TODO: Falta hacer una función que reciba 2 hierbas y devuelva 1 hierba con el efecto que daría
+-- mezclar :: Hierba -> Hierba -> Hierba
+-- mezclar hierba1 hierba2 = ACA HAY QUE SUMAR TODOS LOS VALORES DE hierba1 CON LOS VALORES DE hierba2
+
+
+
+hacerMedicamento :: Medicina
 hacerMedicamento [] raton = raton
 hacerMedicamento (hierba:cola) raton = hacerMedicamento cola (hierba raton)
 
 aplicarMedicamento = hacerMedicamento
 
 
-ratisalil raton = hacerMedicamento [hierbaZort, hierbaMala] raton
-pondsAntiAge raton = hacerMedicamento [alcachofa 10, hierbaBuena, hierbaBuena, hierbaBuena] raton
+-- ratisalil raton = hacerMedicamento [hierbaZort, hierbaMala] raton
+-- pondsAntiAge raton = hacerMedicamento [alcachofa 10, hierbaBuena, hierbaBuena, hierbaBuena] raton
 
 -- Tratamientos (realizar un tratamiento a un ratón contra un diagnostico)
 realizarTratamiento diagnostico raton medicinas = foldl (condicionDiagnostico diagnostico) raton medicinas
@@ -102,8 +110,10 @@ pinky = CRaton {
 }
 
 -- --Test 6 a y b
--- estudioAntiguedad mickeyMouse --Tiene que devolver True
--- estudioAntiguedad jerry --Tiene que devolver False
+-- diagnostico analisisDeExceso 1 (antiguedad mickeyMouse) ShouldBy True
+-- diagnostico analisisDeExceso 1 (antiguedad jerry) ShouldBy False
+-- diagnostico analisisRangoMedio 18.5 25 (masaCorporal mickeyMouse) ShouldBy True
+-- diagnostico analisisRangoMedio 18.5 25 (masaCorporal jerry) ShouldBy False
 
 -- masaCorporal mickeyMouse -- >0 para mickeyMouse
 -- masaCorporal jerry 		-- <0 para Jerry
@@ -115,7 +125,6 @@ pinky = CRaton {
 
 -- medicina Jerry [Alcachofa(10, Jerry) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura)] -- Devuelve a un Raton con edad 9.5 peso 1.8 altura 0.3
 
--- ---tratamiento (CRaton) --Aca en el punto D me mato...
 
 
 
