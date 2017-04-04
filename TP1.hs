@@ -69,6 +69,9 @@ hierbaZort (CRaton _ _ _) = pinky
 -- mezclar :: Hierba -> Hierba -> Hierba
 -- mezclar hierba1 hierba2 = ACA HAY QUE SUMAR TODOS LOS VALORES DE hierba1 CON LOS VALORES DE hierba2
 
+mezclar :: Hierba -> Hierba -> Hierba
+mezclar = hierba1 . hierba2 
+
 
 
 hacerMedicamento :: Medicina
