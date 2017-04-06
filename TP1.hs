@@ -1,4 +1,6 @@
 --TP1.hs
+import Data.List
+
 instance Show (a -> b) where
          show a= "funcion"
 
@@ -6,14 +8,15 @@ instance Show (a -> b) where
 data Raton = CRaton {
 	edad :: Float,
 	peso :: Float,
-	altura :: Float
+	altura :: Float,
+	enfermedades :: [Enfermedad]
 } deriving (Show, Eq)
 
-type Estudio = Raton -> Raton
-type Analisis = Raton -> Float
+type Estudio = Raton -> Float
+type Analisis = Estudio -> Diagnostico
+type Diagnostico = Raton -> Bool
 type Hierba = Raton -> Raton
 type Medicina = [Hierba] -> Raton -> Raton
-
 
 -- Utils
 -- Devuelve true si el valor pasado está entre el valorMaximo y el valorMinimo
@@ -29,48 +32,81 @@ esMayor num1 num2 = num1 > num2
 -- Obtiene el porcentaje de un valor pasado, pej: 10%  ==> porcentaje 10 10 = 10 * 10 / 100 ==> 1
 porcentaje num denominador = num * denominador / 100
 
-rangoMedio valor min max =  estaEntreValores valor min max 
+rangoMedio min max valor =  estaEntreValores valor min max 
 
--- Estudios
-masaCorporal :: Raton -> Float
-masaCorporal raton = peso raton / ( ( altura raton ) ^2 )
+-- Estudios (Raton -> Float)
+estudioMasaCorporal :: Estudio
+estudioMasaCorporal raton = calcularMasaCorporal (peso raton) (altura raton)
 
-antiguedad raton = (( edad raton + 5 ) / 85)
-antiguedad :: Raton -> Float
+calcularMasaCorporal :: Float -> Float -> Float
+calcularMasaCorporal peso altura =   peso / ( altura ^2 )
+
+
+estudioAntiguedad :: Estudio
+estudioAntiguedad  = calcularAntiguedad . edad 
+
+calcularAntiguedad :: Float -> Float
+calcularAntiguedad edad = (edad + 5) / 85
+
+
+
 
 -- analisis
-diagnostico analisis valor = analisis valor
+-- diagnostico analisis valor = analisis valor
 
 -- Dignosticos - Analisis
--- Harcodeado no define un valor critico para el estudio
-analisisDeExceso valorCritico valorEstudio = esMayor valorEstudio valorCritico
+-- analisisDeExceso :: Float -> Estudio -> Analisis
+analisisDeExceso :: Float -> Analisis
+analisisDeExceso valorCritico estudio  =  (valorCritico <) . estudio
+{-De exceso, que dan positivo cuando el índice producido por el estudio se encuentra por arriba de cierto valor crítico.
+-}
 
--- Valores máximo = 25 y minimo 18.5
-analisisRangoMedio min max valorEstudio = not (rangoMedio valorEstudio min max)
 
-analisisBerretas _ = False
+
+{- De rango medio, que dan positivo cuando el índice producido por el estudio no se encuentra entre dos valores.-}
+analisisRangoMedio :: Float -> Float -> Analisis
+analisisRangoMedio valorMinimo valorMaximo estudio = not . (rangoMedio valorMinimo valorMaximo) . estudio
+
+
+{-Berretas, que nunca dan positivo.-}
+analisisBerretas :: Analisis
+analisisBerretas estudio = darSiemprePositivo
+
+darSiemprePositivo _ = True;
+
+-- Diagnlaticoesviejo = deExceso 10 . Antigüedad.    :: Diagnóstico
+-- deExceso valor crítico estudio  =( valor crítico < ).estudio 
+
 
 -- Curando ratones
 -- Hierbas
 hierbaBuena :: Hierba
-hierbaBuena (CRaton edad peso altura) = (CRaton (mitad edad) peso altura)
+hierbaBuena = cambiarEdad (/2)
 
 hierbaMala :: Hierba
-hierbaMala (CRaton edad peso altura) = (CRaton (doble edad) peso altura)
+hierbaMala = cambiarEdad (*2)
 
 alcachofa :: Float -> Hierba
-alcachofa valor (CRaton edad peso altura) = (CRaton edad (peso - porcentaje peso valor) altura)
+alcachofa valorPorcentaje = restarPeso (porcentaje valorPorcentaje)
+
 
 hierbaZort :: Hierba
-hierbaZort (CRaton _ _ _) = pinky
+hierbaZort = alcachofa 0
+
+
+-- cambiarEdad efecto raton = raton { edad = (efecto . edad) raton }
+cambiarEdad efecto raton = raton { edad = efecto (edad raton) }
+
+
+restarPeso efecto raton = raton { peso = peso raton - efecto (peso raton) }
+
+cambiarPeso efecto raton = raton { peso = efecto (peso raton) }
 
 -- Medicinas (hacer medicinas)
--- TODO: Falta hacer una función que reciba 2 hierbas y devuelva 1 hierba con el efecto que daría
--- mezclar :: Hierba -> Hierba -> Hierba
--- mezclar hierba1 hierba2 = ACA HAY QUE SUMAR TODOS LOS VALORES DE hierba1 CON LOS VALORES DE hierba2
 
 mezclar :: Hierba -> Hierba -> Hierba
-mezclar = hierba1 . hierba2 
+-- mezclar = hierba1 . hierba2 
+mezclar = (.)
 
 
 
@@ -96,20 +132,23 @@ condicionDiagnostico diagnostico raton medicina
 mickeyMouse = CRaton {
 	edad = 88,
 	peso = 20,
-	altura = 0.8
+	altura = 0.8,
+	enfermedades = ["brucelosis","sarampión","tuberculosis"]
 }
 
 
 jerry = CRaton {
 	edad = 76,
 	peso = 2,
-	altura = 0.3
+	altura = 0.3,
+	enfermedades = []
 }
 
 pinky = CRaton {
 	edad = 0,
 	peso = 0,
-	altura = 0
+	altura = 0,
+	enfermedades = []
 }
 
 -- --Test 6 a y b
@@ -130,9 +169,25 @@ pinky = CRaton {
 
 
 
+---------------------------------------------------------------------------------------
+------------------------------------ SEGUNDA PARTE ------------------------------------
+---------------------------------------------------------------------------------------
+type Enfermedad = String
+
+estudioCantidadEnfermedades :: Estudio
+estudioCantidadEnfermedades = genericLength.enfermedades
 
 
+diagnosticoTieneEnfermedad :: Enfermedad -> Diagnostico
+diagnosticoTieneEnfermedad enfermedad = (elem enfermedad).enfermedades
 
 
+-- hierbaVerde :: Hierba
+hierbaVerde = cambiarEnfermedades (eliminarEnfermedadesCon "sis")
 
+-- cambiarEdad efecto raton = raton { edad = (efecto . edad) raton }
+cambiarEnfermedades efecto raton = raton { enfermedades = (efecto.enfermedades) raton }
 
+eliminarEnfermedadesCon terminacion enfermedades = filter (not.enfermedadTerminaCon terminacion) enfermedades 
+
+enfermedadTerminaCon terminacion enfermedad = elem terminacion (tails enfermedad)
