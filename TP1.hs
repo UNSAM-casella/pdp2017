@@ -12,13 +12,17 @@ data Raton = CRaton {
 	enfermedades :: [Enfermedad]
 } deriving (Show, Eq)
 
-type Estudio = Raton -> Float
-type Analisis = Estudio -> Diagnostico
+type Indice = Float
+type Estudio = Raton -> Indice
 type Diagnostico = Raton -> Bool
-type Hierba = Raton -> Raton
-type Medicina = [Hierba] -> Raton -> Raton
+type Analisis = Estudio -> Diagnostico
 
--- Utils
+type Hierba = Raton -> Raton
+
+
+-----------------------------------------
+----------------- UTILS -----------------
+-----------------------------------------
 -- Devuelve true si el valor pasado está entre el valorMaximo y el valorMinimo
 estaEntreValores valor valorMinimo valorMaximo = valor < valorMaximo && valor > valorMinimo
 
@@ -34,12 +38,20 @@ porcentaje num denominador = num * denominador / 100
 
 rangoMedio min max valor =  estaEntreValores valor min max 
 
--- Estudios (Raton -> Float)
+promedio listadoNums = (sum listadoNums) / (genericLength listadoNums)
+
+
+
+
+
+----------------------------------------
+--------------- ESTUDIOS ---------------
+----------------------------------------
 estudioMasaCorporal :: Estudio
 estudioMasaCorporal raton = calcularMasaCorporal (peso raton) (altura raton)
 
 calcularMasaCorporal :: Float -> Float -> Float
-calcularMasaCorporal peso altura =   peso / ( altura ^2 )
+calcularMasaCorporal peso altura =   peso / altura ^2
 
 
 estudioAntiguedad :: Estudio
@@ -52,7 +64,7 @@ calcularAntiguedad edad = (edad + 5) / 85
 
 
 -- analisis
--- diagnostico analisis valor = analisis valor
+hacerDiagnostico analisis valor = analisis valor
 
 -- Dignosticos - Analisis
 -- analisisDeExceso :: Float -> Estudio -> Analisis
@@ -103,18 +115,16 @@ restarPeso efecto raton = raton { peso = peso raton - efecto (peso raton) }
 cambiarPeso efecto raton = raton { peso = efecto (peso raton) }
 
 -- Medicinas (hacer medicinas)
-
 mezclar :: Hierba -> Hierba -> Hierba
 -- mezclar = hierba1 . hierba2 
 mezclar = (.)
 
 
+type Medicina = [Hierba]
 
-hacerMedicamento :: Medicina
-hacerMedicamento [] raton = raton
-hacerMedicamento (hierba:cola) raton = hacerMedicamento cola (hierba raton)
-
-aplicarMedicamento = hacerMedicamento
+-- aplicarMedicamentos :: Medicina -> Raton ->Raton
+-- aplicarMedicamentos [] raton = raton
+-- aplicarMedicamentos (hierba:cola) raton = aplicarMedicamentos cola (hierba raton)
 
 
 -- ratisalil raton = hacerMedicamento [hierbaZort, hierbaMala] raton
@@ -141,7 +151,7 @@ jerry = CRaton {
 	edad = 76,
 	peso = 2,
 	altura = 0.3,
-	enfermedades = []
+	enfermedades = ["otitis"]
 }
 
 pinky = CRaton {
@@ -152,10 +162,10 @@ pinky = CRaton {
 }
 
 -- --Test 6 a y b
--- diagnostico analisisDeExceso 1 (antiguedad mickeyMouse) ShouldBy True
--- diagnostico analisisDeExceso 1 (antiguedad jerry) ShouldBy False
--- diagnostico analisisRangoMedio 18.5 25 (masaCorporal mickeyMouse) ShouldBy True
--- diagnostico analisisRangoMedio 18.5 25 (masaCorporal jerry) ShouldBy False
+-- hacerDiagnostico analisisDeExceso 1 (antiguedad mickeyMouse) ShouldBy True
+-- hacerDiagnostico analisisDeExceso 1 (antiguedad jerry) ShouldBy False
+-- hacerDiagnostico analisisRangoMedio 18.5 25 (masaCorporal mickeyMouse) ShouldBy True
+-- hacerDiagnostico analisisRangoMedio 18.5 25 (masaCorporal jerry) ShouldBy False
 
 -- masaCorporal mickeyMouse -- >0 para mickeyMouse
 -- masaCorporal jerry 		-- <0 para Jerry
@@ -182,12 +192,51 @@ diagnosticoTieneEnfermedad :: Enfermedad -> Diagnostico
 diagnosticoTieneEnfermedad enfermedad = (elem enfermedad).enfermedades
 
 
--- hierbaVerde :: Hierba
-hierbaVerde = cambiarEnfermedades (eliminarEnfermedadesCon "sis")
+hierbaVerde :: String -> Hierba
+hierbaVerde terminacion = cambiarEnfermedades (eliminarEnfermedadesCon terminacion)
 
--- cambiarEdad efecto raton = raton { edad = (efecto . edad) raton }
 cambiarEnfermedades efecto raton = raton { enfermedades = (efecto.enfermedades) raton }
+
+-- cambiarEnfermedades efecto raton = raton { enfermedades = filter (not.enfermedadTerminaCon "sis") (enfermedades raton) }
+
+-- cambiarEnfermedades (eliminarEnfermedadesCon terminacion (enfermedades raton))
+
+-- eliminarEnfermedadesCon terminacion (enfermedades raton) ====>>>> filter (not.enfermedadTerminaCon terminacion) (enfermedades raton)
+
 
 eliminarEnfermedadesCon terminacion enfermedades = filter (not.enfermedadTerminaCon terminacion) enfermedades 
 
 enfermedadTerminaCon terminacion enfermedad = elem terminacion (tails enfermedad)
+
+-- pdpCilina :: Medicina
+-- type Medicina = [Hierba] -> Raton -> Raton
+-- pdpCilina raton = foldl aplicarMedicamento raton hierbasVerdesContraInfecciosas
+aplicarMedicamentos :: Medicina -> Raton -> Raton
+aplicarMedicamentos hierbas raton = foldl aplicarMedicamento raton hierbas
+
+-- aplicarMedicamentos = hacerMedicamento
+aplicarMedicamento raton medicina = medicina raton
+
+
+pdpCilina :: Medicina
+pdpCilina = hierbasVerdesContraInfecciosas
+
+hierbasVerdesContraInfecciosas = map hierbaVerde terminacionesEnfermedadesInfecciosas
+
+terminacionesEnfermedadesInfecciosas = ["sis", "itis", "emia", "cocos"]
+
+
+type Colonia = [Raton]
+---------------------------------------
+------------ OBSERVACIONES ------------
+---------------------------------------
+type Observacion = Colonia -> Indice
+
+-- obsPromedioEstudio :: Observacion
+-- obsPromedioEstudio = map promedio (estudio raton)
+
+obsPromedioEstudio :: Estudio -> Colonia -> Indice
+obsPromedioEstudio estudio colonia = promedio (map estudio colonia)
+
+-- obsCantEnfermos :: Diagnostico -> Colonia -> Indice
+-- obsCantEnfermos diagnostico colonia = sum (filter diagnostico colonia)
