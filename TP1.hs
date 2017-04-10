@@ -1,4 +1,5 @@
 --TP1.hs
+import Test.Hspec 
 import Data.List
 
 instance Show (a -> b) where
@@ -9,10 +10,15 @@ data Raton = CRaton {
 	edad :: Float,
 	peso :: Float,
 	altura :: Float,
-	enfermedades :: [Enfermedad],
-	nombre :: String
+	enfermedades :: [Enfermedad]
 } deriving (Show, Eq)
 
+type Indice = Float
+type Estudio = Raton -> Indice
+type Analisis = Estudio -> Diagnostico
+type Diagnostico = Raton -> Bool
+type Hierba = Raton -> Raton
+type Colonia = [Raton]
 
 -----------------------------------------
 ----------------- UTILS -----------------
@@ -55,27 +61,9 @@ calcularAntiguedad :: Float -> Float
 calcularAntiguedad edad = (edad + 5) / 85
 
 
-
-type Indice = Float
-type Estudio = Raton -> Indice
-type Analisis = Estudio -> Diagnostico
-type Diagnostico = Raton -> Bool
-type Hierba = Raton -> Raton
-
-
--- analisis
--- analizar :: Estudio -> Analisis
--- analizar :: Estudio -> (Estudio -> Diagnostico)
-analizar :: Analisis
-analizar estudio = analisisDeExceso 1 estudio
-	
-
-
 -- Dignosticos - Analisis
--- analisisDeExceso :: Float -> Estudio -> Analisis
 analisisDeExceso :: Float -> Analisis
 analisisDeExceso valorCritico estudio  =  (valorCritico <) . estudio
--- analisisDeExceso 1 estudioAntiguedad(mickeyMouse)
 {-De exceso, que dan positivo cuando el índice producido por el estudio se encuentra por arriba de cierto valor crítico.
 -}
 
@@ -92,8 +80,7 @@ analisisBerretas estudio = darSiemprePositivo
 
 darSiemprePositivo _ = True;
 
--- Diagnlaticoesviejo = deExceso 10 . Antigüedad.    :: Diagnóstico
--- deExceso valor crítico estudio  =( valor crítico < ).estudio 
+
 
 
 -- Curando ratones
@@ -109,12 +96,10 @@ alcachofa valorPorcentaje = restarPeso (porcentaje valorPorcentaje)
 
 
 hierbaZort :: Hierba
-hierbaZort = alcachofa 0
+hierbaZort raton = raton { edad = 0, peso = 0, altura = 0, enfermedades = []}
 
 
--- cambiarEdad efecto raton = raton { edad = (efecto . edad) raton }
 cambiarEdad efecto raton = raton { edad = efecto (edad raton) }
-
 
 restarPeso efecto raton = raton { peso = peso raton - efecto (peso raton) }
 
@@ -128,13 +113,9 @@ mezclar = (.)
 
 type Medicina = [Hierba]
 
-aplicarMedicamentos :: Raton -> Medicina ->Raton
-aplicarMedicamentos raton [] = raton
-aplicarMedicamentos raton (hierba:cola)= aplicarMedicamentos (hierba raton) cola
-
-
--- ratisalil raton = hacerMedicamento [hierbaZort, hierbaMala] raton
--- pondsAntiAge raton = hacerMedicamento [alcachofa 10, hierbaBuena, hierbaBuena, hierbaBuena] raton
+aplicarMedicamentos :: Medicina -> Raton -> Raton
+aplicarMedicamentos [] raton = raton
+aplicarMedicamentos (hierba:colaHierba) raton = aplicarMedicamentos colaHierba (hierba raton)
 
 -- Tratamientos (realizar un tratamiento a un ratón contra un diagnostico)
 realizarTratamiento diagnostico raton medicinas = foldl (condicionDiagnostico diagnostico) raton medicinas
@@ -142,57 +123,6 @@ realizarTratamiento diagnostico raton medicinas = foldl (condicionDiagnostico di
 condicionDiagnostico diagnostico raton medicina
         | diagnostico raton = medicina raton
         | otherwise = raton
-
-
--- --TESTS
-mickeyMouse = CRaton {
-	edad = 88,
-	peso = 20,
-	altura = 0.8,
-	enfermedades = ["brucelosis","sarampion","tuberculosis"],
-	nombre = "Mickey"
-}
-
-minnie = CRaton {
-	edad = 90,
-	peso = 30,
-	altura = 0.6,
-	enfermedades = ["tuberculosis","brucelosis"],
-	nombre = "Minnie"
-}
-
-jerry = CRaton {
-	edad = 76,
-	peso = 2,
-	altura = 0.3,
-	enfermedades = ["otitis","tuberculosis","brucelosis"],
-	nombre = "Jerry"
-}
-
-pinky = CRaton {
-	edad = 0,
-	peso = 0,
-	altura = 0,
-	enfermedades = [],
-	nombre = "Pinky"
-}
-
--- --Test 6 a y b
--- hacerDiagnostico analisisDeExceso 1 (calcularAntiguedad (edad mickeyMouse)) ShouldBy True
--- hacerDiagnostico analisisDeExceso 1 (antiguedad jerry) ShouldBy False
--- hacerDiagnostico analisisRangoMedio 18.5 25 (masaCorporal mickeyMouse) ShouldBy True
--- hacerDiagnostico analisisRangoMedio 18.5 25 (masaCorporal jerry) ShouldBy False
-
--- masaCorporal mickeyMouse -- >0 para mickeyMouse
--- masaCorporal jerry 		-- <0 para Jerry
-
--- --Test 7 a, b, c y d
--- mezclar jerry hierbaBuena hierbaMala --Tiene que devolver un raton igual a Jerry
-
--- mezclar Jerry hierbaZort hierbaMala --Tiene que devolver a Pinky
-
--- medicina Jerry [Alcachofa(10, Jerry) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura) hierbaBuena(Jerry edad peso altura)] -- Devuelve a un Raton con edad 9.5 peso 1.8 altura 0.3
-
 
 
 ---------------------------------------------------------------------------------------
@@ -209,63 +139,22 @@ diagnosticoTieneEnfermedad enfermedad = (elem enfermedad).enfermedades
 
 
 hierbaVerde :: String -> Hierba
-hierbaVerde terminacion = cambiarEnfermedades (eliminarEnfermedadesCon terminacion)
+hierbaVerde = cambiarEnfermedades.eliminarEnfermedadesCon
 
 cambiarEnfermedades efecto raton = raton { enfermedades = (efecto.enfermedades) raton }
-
--- cambiarEnfermedades efecto raton = raton { enfermedades = filter (not.enfermedadTerminaCon "sis") (enfermedades raton) }
-
--- cambiarEnfermedades (eliminarEnfermedadesCon terminacion (enfermedades raton))
-
--- eliminarEnfermedadesCon terminacion (enfermedades raton) ====>>>> filter (not.enfermedadTerminaCon terminacion) (enfermedades raton)
-
 
 eliminarEnfermedadesCon terminacion enfermedades = filter (not.enfermedadTerminaCon terminacion) enfermedades 
 
 enfermedadTerminaCon terminacion enfermedad = elem terminacion (tails enfermedad)
 
--- pdpCilina :: Medicina
--- type Medicina = [Hierba] -> Raton -> Raton
--- pdpCilina raton = foldl aplicarMedicamento raton hierbasVerdesContraInfecciosas
 
-
--- aplicarMedicamentos :: Medicina -> Raton -> Raton
--- aplicarMedicamentos hierbas raton = foldl aplicarMedicamento raton hierbas
-
--- aplicarMedicamentos = hacerMedicamento
--- aplicarMedicamento :: Medicina -> Raton -> Raton
--- aplicarMedicamento raton medicina = medicina raton
 aplicarMedicamento medicina raton = medicina raton
 
 
 pdpCilina :: Medicina
-pdpCilina = hierbasVerdesContraInfecciosas
-
-hierbasVerdesContraInfecciosas = map hierbaVerde terminacionesEnfermedadesInfecciosas
+pdpCilina = map hierbaVerde terminacionesEnfermedadesInfecciosas
 
 terminacionesEnfermedadesInfecciosas = ["sis", "itis", "emia", "cocos"]
-
-
-
-
-
-
--------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------
------------------------------------------ COLONIA -----------------------------------------
--------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------
-
-
-type Colonia = [Raton]
-unaColonia = [mickeyMouse, jerry, minnie]
--- unaColonia = [minnie]
-
-
-
-
-
-
 
 
 
@@ -276,12 +165,8 @@ unaColonia = [mickeyMouse, jerry, minnie]
 ---------------------------------------
 type Observacion = Colonia -> Indice
 
--- obsPromedioEstudio :: Observacion
--- obsPromedioEstudio = map promedio (estudio raton)
-
 obsPromedioEstudio :: Estudio -> Colonia -> Indice
-obsPromedioEstudio estudio colonia = promedio (map estudio colonia)
-
+obsPromedioEstudio estudio = promedio.(map estudio)
 
 
 ratonesPeligroDiagnostico :: Diagnostico -> Colonia -> Colonia
@@ -289,39 +174,26 @@ ratonesPeligroDiagnostico diagnostico colonia = filter diagnostico colonia
 
 obsCantEnfermos :: Diagnostico -> Observacion
 obsCantEnfermos diagnostico = genericLength . ratonesPeligroDiagnostico diagnostico
--- obsCantEnfermos (analisisDeExceso 1 estudioAntiguedad) unaColonia
 
 
 obsDeLimite :: Estudio -> Diagnostico-> Observacion
 obsDeLimite estudio diagnostico colonia = maximum  . map estudio $ (ratonesPeligroDiagnostico diagnostico colonia) 
--- obsDeLimite estudioAntiguedad (analisisDeExceso 1 estudioAntiguedad) unaColonia
--- ratonesPeligroDiagnostico (analisisDeExceso 1 estudioAntiguedad) unaColonia
 
--- enfermedadesPeligrosas :: Colonia -> [Enfermedad]
--- enfermedadesPeligrosas colonia = all elem (enfermedades raton)
+obsPromedioEnfermedades colonia = (/) (cantidadEnfermedades colonia) (genericLength colonia)
+cantidadEnfermedades colonia = genericLength . concat $ (map enfermedades colonia)
 
-{-Obtengo todas las enfermedades de todos los ratones. 
-map enfermedades unaColonia
+cantidadEnfermosPor enfermedad colonia = genericLength (filter (unaEnfermedadEsta enfermedad) colonia)
 
-si una enfermedad esta en todos los ratones, es peligrosa.
--}
 
-unaEnfermedadEsta enfermedad raton = elem enfermedad (enfermedades raton)
+unaEnfermedadEsta enfermedad = (elem enfermedad).enfermedades
 
 unaEnfermedadEstaEnTodos colonia enfermedad = all (unaEnfermedadEsta enfermedad) colonia
--- unaEnfermedadEstaEnTodos enfermedad colonia = map (unaEnfermedadEsta enfermedad (enfermedades colonia)) colonia
 
-
--- todasLasEnfermedades colonia = nub (concat (map enfermedades colonia))
--- todasLasEnfermedades colonia = nub . concat $ (map enfermedades colonia)
--- todasLasEnfermedades colonia = nub . concat . map  enfermedades $ colonia
 todasLasEnfermedades = nub . concat . map  enfermedades
 
 
--- indiceEnfermedadesPeligrosas = elemIndices True (map (unaEnfermedadEstaEnTodos unaColonia) (todasLasEnfermedades unaColonia))
 indiceEnfermedadesPeligrosas = elemIndices True (map (unaEnfermedadEstaEnTodos unaColonia) (todasLasEnfermedades unaColonia))
 
--- map ((!!)(todasLasEnfermedades unaColonia))(todasLasEnfermedades unaColonia) indiceEnfermedadesPeligrosas
 enfermedadesPeligrosas colonia = map ((!!)(todasLasEnfermedades unaColonia)) indiceEnfermedadesPeligrosas
 
 
@@ -330,23 +202,11 @@ enfermedadesPeligrosas colonia = map ((!!)(todasLasEnfermedades unaColonia)) ind
 ----------------- EXPERIMENTOS -----------------
 ------------------------------------------------
 
-medicinaFunciona medicina diagnostico colonia = map (aplicarMedicamento medicina) (ratonesPeligroDiagnostico diagnostico colonia)
-{- FALTA CONTAR RESULTADO Y DAR TRUE O FALSE SI ES MAYOR A 0 -}
--- medicinaFunciona hierbaBuena (analisisDeExceso 1 estudioAntiguedad) unaColonia
--- ratonesPeligroDiagnostico (analisisDeExceso 1 estudioAntiguedad) unaColonia
--- aplicarMedicamento hierbaBuena
+medicinaFunciona medicina diagnostico colonia = not (any diagnostico (aplicarMedicinaDiagnosticoColonia medicina diagnostico colonia))
 
--- map (aplicarMedicamento hierbaBuena ) (ratonesPeligroDiagnostico (analisisDeExceso 1 estudioAntiguedad) unaColonia)
-
-
--- experimentarMuchasMedicinas :: [Medicina] -> Colonia
-
-
+aplicarMedicinaDiagnosticoColonia medicina diagnostico colonia = map (aplicarMedicamentos medicina) (ratonesPeligroDiagnostico diagnostico colonia)
 
 muchasMedicinas = [hierbaBuena, hierbaZort, hierbaMala]
-
-
-
 
 aplicarMedicamentoColonia medicina colonia = map medicina colonia
 
@@ -355,47 +215,121 @@ aplicarMedicamentoColonia medicina colonia = map medicina colonia
 experimentarMuchasMedicinas [] raton = raton
 experimentarMuchasMedicinas (medicina:colaMedicina) raton = experimentarMuchasMedicinas colaMedicina (medicina raton)
 
-{- No sirve, recorre uno por uno en ambas listas al mismo tiempo 
-addList [] _ = []
-addList _ [] = []
-addList (raton:colaRaton) (medicina:colaMedicina) = medicina raton : addList colaRaton colaMedicina
--}
-
-
--- addList [] _ = []
--- addList (raton:colaRaton) medicinas = experimentarMuchasMedicinas raton medicinas : addList colaRaton medicinas
-
-
 
 aplicarMuchasMedicinasColonia :: Colonia -> Medicina -> Colonia
 aplicarMuchasMedicinasColonia colonia medicinas = map (experimentarMuchasMedicinas medicinas) colonia
-
-
-
-
--- observarColoniaMedicinas = map (obsCantEnfermos (analisisDeExceso 1 estudioAntiguedad) ) (aplicarMuchasMedicinasColonia unaColonia muchasMedicinas)
-
-
-
--- obsCantEnfermos (analisisDeExceso 1 estudioAntiguedad) (aplicarMedicamentoColonia hierbaBuena unaColonia)
-
--- laMejorMedicina [] = []
--- laMejorMedicina (medicina:colaMedicina) = obsCantEnfermos (analisisDeExceso 1 estudioAntiguedad) (aplicarMedicamentoColonia medicina unaColonia) : colaMedicina
 
 
 getElementByIndex list index = (!!) list index
 getIndex elem list = elemIndices elem list
 
 
-{- Quitar observacion y estudio harcodeados -}
-observarMedicinasAplicadasColonia [] _ = []
-observarMedicinasAplicadasColonia (medicina:colaMedicina) colonia = obsCantEnfermos (analisisDeExceso 1 estudioAntiguedad) (aplicarMedicamentoColonia medicina colonia)  : observarMedicinasAplicadasColonia colaMedicina colonia
+observarMedicinasAplicadasColonia _ [] _ = []
+observarMedicinasAplicadasColonia observacion (medicina:colaMedicina) colonia = observacion (aplicarMedicamentoColonia medicina colonia)  : observarMedicinasAplicadasColonia observacion colaMedicina colonia
+
+obsLaMejorMedicina observacion medicinas colonia = minimum (observarMedicinasAplicadasColonia observacion medicinas colonia)
 
 
-obsLaMejorMedicina medicinas colonia = minimum (observarMedicinasAplicadasColonia medicinas colonia)
+indexLaMejorMedicina observacion medicinas colonia = head ( getIndex (obsLaMejorMedicina observacion medicinas colonia) (observarMedicinasAplicadasColonia observacion medicinas colonia) )
 
 
-indexLaMejorMedicina medicinas colonia = head ( getIndex (obsLaMejorMedicina medicinas colonia) (observarMedicinasAplicadasColonia medicinas colonia) )
+laMejorMedicina observacion medicinas colonia = getElementByIndex medicinas (indexLaMejorMedicina observacion medicinas colonia)
 
 
-laMejorMedicina medicinas colonia = getElementByIndex medicinas (indexLaMejorMedicina medicinas colonia)
+
+
+------------------------------------------------------------------------------------
+-------------------------------------- TESTS  --------------------------------------
+------------------------------------------------------------------------------------
+-- --TESTS
+mickeyMouse = CRaton {
+	edad = 88,
+	peso = 20,
+	altura = 0.8,
+	enfermedades = ["disneymania", "hipotermia"]
+}
+
+jerry = CRaton {
+	edad = 76,
+	peso = 2,
+	altura = 0.3,
+	enfermedades = ["tuberculosis", "varicela", "endemia"]
+}
+
+pinky = CRaton {
+	edad = 0,
+	peso = 0,
+	altura = 0,
+	enfermedades = []
+}
+
+-- ratisalil raton = hacerMedicamento [hierbaZort, hierbaMala] raton
+pondsAntiAge raton = aplicarMedicamentos [alcachofa 10, hierbaBuena, hierbaBuena, hierbaBuena] raton
+
+-- analisis = 
+diagnosticoAntiguedad = analisisDeExceso 1 estudioAntiguedad
+
+diagnosticoTieneDisneymania :: Diagnostico
+diagnosticoTieneDisneymania = diagnosticoTieneEnfermedad "disneymania"
+
+unaColonia :: Colonia
+unaColonia = [mickeyMouse, jerry]
+
+
+runtests = hspec $ do  
+	describe "Parte 1: Diagnosticos 6" $ do
+		it "6-a) De antigüedad: analiza si el índice de antigüedad es mayor a 1. Debería dar positivo para Mickey" $ do 
+			mickeyMouse `shouldSatisfy` analisisDeExceso 1 estudioAntiguedad
+
+		it "6-a) De antigüedad: analiza si el índice de antigüedad es mayor a 1. Debería dar negativo para Jerry" $ do 
+			jerry `shouldNotSatisfy` analisisDeExceso 1 estudioAntiguedad
+
+		it "6-b) De masa corporal: analiza si el índice de masa corporal no se encuentra entre 18.5 y 25. Debería dar positivo para Mickey" $ do 
+			mickeyMouse `shouldSatisfy` analisisRangoMedio 18.5 25 estudioMasaCorporal
+
+		it "6-b) De masa corporal: analiza si el índice de masa corporal no se encuentra entre 18.5 y 25. Debería dar negativo para Jerry" $ do 
+			jerry `shouldNotSatisfy` analisisRangoMedio 18.5 25 estudioMasaCorporal
+	
+	describe "Parte 1: Medicinas 7" $ do
+		it "7-a) Verificar que mezclar una Hierba Buena con una Hierba Mala crea una hierba que no produce efecto." $ do 
+			(mezclar hierbaBuena hierbaMala) mickeyMouse `shouldBe` mickeyMouse
+
+		it "7-b) Hacer el Ratisalil, un medicamento basado en una Hierba Zort y una Hierba Mala. Verificar que produce los mismos resultados que una Hierba Zort." $ do 
+			(mezclar hierbaZort hierbaMala) mickeyMouse `shouldBe` hierbaZort mickeyMouse
+			
+		it "7-c) Hacer la Ponds Anti Age, que es un medicamento que está hecho con una Alcachofa de  10 y 3 hierbas buenas. Verificar que al administrárselo a Jerry queda con edad = 9.5, peso = 1.8 y altura = 0.3" $ do 
+			pondsAntiAge jerry `shouldBe` CRaton 9.5 1.8 0.3 (enfermedades jerry)
+
+		it "7-d-i) Crear un tratamiento contra la antigüedad que conste de una Hierba Buena y una Ponds Anti Age. A Mickey tiene el mismo efecto que una hierba buena." $ do 
+			realizarTratamiento diagnosticoAntiguedad mickeyMouse [hierbaBuena, pondsAntiAge] `shouldBe` realizarTratamiento diagnosticoAntiguedad mickeyMouse [hierbaBuena] 
+
+		it "7-d-ii) Crear un tratamiento contra la antigüedad que conste de una Hierba Buena y una Ponds Anti Age. A Jerry tiene el mismo efecto que una alcachofa de 0." $ do 
+			realizarTratamiento diagnosticoAntiguedad jerry [hierbaBuena, pondsAntiAge] `shouldBe` realizarTratamiento diagnosticoAntiguedad jerry [alcachofa 0] 
+
+	describe "Parte 2: 8" $ do
+		it "8-a) Crear un diagnóstico para saber si un ratón posee disneymania. Deberia dar True en Mickey" $ do 
+			mickeyMouse `shouldSatisfy` diagnosticoTieneDisneymania
+
+		it "8-b) Crear un diagnóstico para saber si un ratón posee disneymania. Deberia dar True en Mickey y False en Jerry" $ do 
+			mickeyMouse `shouldSatisfy` diagnosticoTieneDisneymania
+			jerry `shouldNotSatisfy` diagnosticoTieneDisneymania
+
+		it "8-c) Darle pdpCilina a Jerry sólo le queda varicela como enfermedad" $ do 
+			aplicarMedicamentos pdpCilina jerry `shouldBe` CRaton 76.0 2.0 0.3 ["varicela"]
+			
+	describe "Parte 2: 9" $ do
+		it "9-a) Armar una observación que indique el promedio de enfermedades de una colonia." $ do 
+			obsPromedioEstudio estudioAntiguedad unaColonia `shouldBe` 1.0235294
+
+		it "9-b) Armar una observación que indique el promedio de enfermedades de una colonia." $ do 
+			obsPromedioEnfermedades unaColonia `shouldBe` 2.5
+
+		it "9-c) La cantidad de enfermos que poseen la enfermedad disneymania para la colonia de PDP es 1." $ do 
+			cantidadEnfermosPor "disneymania" unaColonia `shouldBe` 1
+
+	describe "Parte 2: 10" $ do
+		it "10-a) La pdpCilina no funciona para tratar la enfermedad disneymania." $ do 
+			unaColonia `shouldNotSatisfy` medicinaFunciona pdpCilina diagnosticoTieneDisneymania
+
+		it "10-b) La pdpCilina no funciona para tratar la enfermedad disneymania." $ do 
+			unaColonia `shouldSatisfy` medicinaFunciona [(hierbaVerde "ania")] diagnosticoTieneDisneymania
