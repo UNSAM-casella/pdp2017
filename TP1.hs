@@ -114,8 +114,7 @@ mezclar = (.)
 type Medicina = [Hierba]
 
 aplicarMedicamentos :: Medicina -> Raton -> Raton
-aplicarMedicamentos [] raton = raton
-aplicarMedicamentos (hierba:colaHierba) raton = aplicarMedicamentos colaHierba (hierba raton)
+aplicarMedicamentos hierbas raton = foldl aplicarMedicamento raton hierbas
 
 -- Tratamientos (realizar un tratamiento a un ratón contra un diagnostico)
 realizarTratamiento diagnostico raton medicinas = foldl (condicionDiagnostico diagnostico) raton medicinas
@@ -148,7 +147,7 @@ eliminarEnfermedadesCon terminacion enfermedades = filter (not.enfermedadTermina
 enfermedadTerminaCon terminacion enfermedad = elem terminacion (tails enfermedad)
 
 
-aplicarMedicamento medicina raton = medicina raton
+aplicarMedicamento raton medicina = medicina raton
 
 
 pdpCilina :: Medicina
@@ -165,7 +164,7 @@ terminacionesEnfermedadesInfecciosas = ["sis", "itis", "emia", "cocos"]
 ---------------------------------------
 type Observacion = Colonia -> Indice
 
-obsPromedioEstudio :: Estudio -> Colonia -> Indice
+obsPromedioEstudio :: Estudio -> Observacion
 obsPromedioEstudio estudio = promedio.(map estudio)
 
 
@@ -201,36 +200,35 @@ enfermedadesPeligrosas colonia = map ((!!)(todasLasEnfermedades unaColonia)) ind
 ------------------------------------------------
 ----------------- EXPERIMENTOS -----------------
 ------------------------------------------------
+medicinaFunciona :: Medicina -> Diagnostico -> Colonia -> Bool
+medicinaFunciona medicina diagnostico colonia = not . any diagnostico . aplicarMedicinaDiagnosticoColonia medicina diagnostico $ colonia
 
-medicinaFunciona medicina diagnostico colonia = not (any diagnostico (aplicarMedicinaDiagnosticoColonia medicina diagnostico colonia))
 
+aplicarMedicinaDiagnosticoColonia :: Medicina -> Diagnostico -> Colonia -> Colonia
 aplicarMedicinaDiagnosticoColonia medicina diagnostico colonia = map (aplicarMedicamentos medicina) (ratonesPeligroDiagnostico diagnostico colonia)
 
+
+-- Sacar de aca!
 muchasMedicinas = [hierbaBuena, hierbaZort, hierbaMala]
 
-aplicarMedicamentoColonia medicina colonia = map medicina colonia
-
-
-
-experimentarMuchasMedicinas [] raton = raton
-experimentarMuchasMedicinas (medicina:colaMedicina) raton = experimentarMuchasMedicinas colaMedicina (medicina raton)
-
-
-aplicarMuchasMedicinasColonia :: Colonia -> Medicina -> Colonia
-aplicarMuchasMedicinasColonia colonia medicinas = map (experimentarMuchasMedicinas medicinas) colonia
+-- aplicarMedicamentoColonia :: Medicina -> Colonia -> Colonia
+aplicarMedicamentoColonia colonia medicina = map medicina colonia
 
 
 getElementByIndex list index = (!!) list index
 getIndex elem list = elemIndices elem list
 
+unaObservacion = obsPromedioEstudio estudioAntiguedad
+
 
 observarMedicinasAplicadasColonia _ [] _ = []
 observarMedicinasAplicadasColonia observacion (medicina:colaMedicina) colonia = observacion (aplicarMedicamentoColonia medicina colonia)  : observarMedicinasAplicadasColonia observacion colaMedicina colonia
 
-obsLaMejorMedicina observacion medicinas colonia = minimum (observarMedicinasAplicadasColonia observacion medicinas colonia)
+
+obsLaMejorMedicina observacion medicinas = minimum . observarMedicinasAplicadasColonia observacion medicinas
 
 
-indexLaMejorMedicina observacion medicinas colonia = head ( getIndex (obsLaMejorMedicina observacion medicinas colonia) (observarMedicinasAplicadasColonia observacion medicinas colonia) )
+indexLaMejorMedicina observacion medicinas colonia = head . getIndex (obsLaMejorMedicina observacion medicinas colonia) $ (observarMedicinasAplicadasColonia observacion medicinas colonia)
 
 
 laMejorMedicina observacion medicinas colonia = getElementByIndex medicinas (indexLaMejorMedicina observacion medicinas colonia)
